@@ -21,6 +21,54 @@ A multi-agent content pipeline — **Researcher → Writer → Editor** — buil
 - **Web UI**: a single-page app with live progress indicators while the crew works, plus a history of past articles.
 - **CLI mode**: run the pipeline from the terminal, including batch mode over a list of topics.
 
+## How it works
+
+```
+                                   ┌──────────────────────┐
+                                   │   Google OAuth        │
+                                   └──────────▲───────────┘
+                                              │ 1. sign in
+                                              │
+   ┌────────────────┐   4. POST /api/generate   ┌────────────────────┐
+   │  User's browser │ ───────────────────────▶ │   FastAPI server    │
+   │  (Web UI)        │ ◀─────────────────────── │   (server.py)        │
+   └────────────────┘   6. final article         └─────────┬───────────┘
+            ▲                                               │ 2. kick off crew
+            │ 7. view past articles                          ▼
+            │                                     ┌─────────────────────┐
+            │                                     │      CrewAI Crew      │
+            │                                     │  (sequential process) │
+            │                                     └─────────┬───────────┘
+            │                                               │
+            │                     ┌─────────────────────────┼─────────────────────────┐
+            │                     ▼                          ▼                          ▼
+            │           ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
+            │           │ Researcher agent │  ───▶  │  Writer agent     │  ───▶  │  Editor agent     │
+            │           │ + web_search tool │        │                   │        │                   │
+            │           └────────┬──────────┘        └────────┬──────────┘        └────────┬──────────┘
+            │                    │                              │                              │
+            │                    ▼                              ▼                              ▼
+            │          ┌──────────────────┐          ┌──────────────────┐          ┌──────────────────┐
+            │          │ DuckDuckGo search  │          │   Groq LLM call    │          │   Groq LLM call    │
+            │          └──────────────────┘          └──────────────────┘          └──────────────────┘
+            │
+            │  5. save article                                                      final article
+            └───────────────────────────────────┐                                          │
+                                                  ▼                                          ▼
+                                       ┌─────────────────────────────────────────────────────┐
+                                       │              Postgres (Neon) — articles table          │
+                                       │              scoped per signed-in user's email          │
+                                       └─────────────────────────────────────────────────────┘
+```
+
+1. The user signs in with Google; the server stores their identity in a session cookie.
+2. The user submits a topic, which kicks off the CrewAI crew.
+3. The **Researcher** agent searches the web and compiles sourced findings.
+4. The **Writer** agent turns those findings into a draft article.
+5. The **Editor** agent polishes the draft into a final, publication-ready piece.
+6. Each agent step calls Groq's LLM; the search tool calls DuckDuckGo directly.
+7. The finished article is saved to Postgres, scoped to that user's email, and shown in the UI — later retrievable from "Past articles".
+
 ## Project structure
 
 ```
