@@ -7,34 +7,38 @@ Requires in .env:
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
     SESSION_SECRET
+    DATABASE_URL
 """
 
-import hashlib
 import os
+import re
+from datetime import datetime
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from authlib.integrations.starlette_client import OAuth
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
-from content_pipeline import run_with_retries, save_article
-
-load_dotenv()
+import db
+from content_pipeline import run_with_retries
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 SESSION_SECRET = os.environ.get("SESSION_SECRET")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if not (SESSION_SECRET and GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET):
+if not (SESSION_SECRET and GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and DATABASE_URL):
     raise RuntimeError(
-        "Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or SESSION_SECRET in .env"
+        "Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SESSION_SECRET, or DATABASE_URL in .env"
     )
 
 app = FastAPI(title="Content Crew")
@@ -49,10 +53,7 @@ oauth.register(
     client_kwargs={"scope": "openid email profile"},
 )
 
-
-def user_dir_for(email: str) -> str:
-    """A filesystem-safe, per-user folder name under outputs/."""
-    return hashlib.sha256(email.lower().encode()).hexdigest()[:16]
+db.init_db()
 
 
 def require_user(request: Request) -> dict:
@@ -60,6 +61,12 @@ def require_user(request: Request) -> dict:
     if not user:
         raise HTTPException(status_code=401, detail="Sign in with Google to continue.")
     return user
+
+
+def make_filename(topic: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", topic.lower()).strip("-") or "untitled"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return f"{slug}_{timestamp}.md"
 
 
 class GenerateRequest(BaseModel):
@@ -115,28 +122,23 @@ def generate(req: GenerateRequest, user: dict = Depends(require_user)):
             detail="The pipeline failed after multiple retries. Check the API key and connection.",
         )
 
-    path = save_article(topic, result, subdir=user_dir_for(user["email"]))
-    return {"filename": os.path.basename(path), "content": str(result)}
+    content = str(result)
+    filename = make_filename(topic)
+    db.save_article(user["email"], filename, topic, content)
+    return {"filename": filename, "content": content}
 
 
 @app.get("/api/articles")
 def list_articles(user: dict = Depends(require_user)):
-    user_outputs = os.path.join(OUTPUTS_DIR, user_dir_for(user["email"]))
-    if not os.path.isdir(user_outputs):
-        return []
-    files = sorted(os.listdir(user_outputs), reverse=True)
-    return [{"filename": f} for f in files if f.endswith(".md")]
+    return db.list_articles(user["email"])
 
 
 @app.get("/api/articles/{filename}")
 def get_article(filename: str, user: dict = Depends(require_user)):
-    safe_name = os.path.basename(filename)
-    path = os.path.join(OUTPUTS_DIR, user_dir_for(user["email"]), safe_name)
-    if not os.path.isfile(path):
+    article = db.get_article(user["email"], filename)
+    if article is None:
         raise HTTPException(status_code=404, detail="Article not found.")
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    return {"filename": safe_name, "content": content}
+    return article
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
