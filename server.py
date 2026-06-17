@@ -36,10 +36,15 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if not (SESSION_SECRET and GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and DATABASE_URL):
-    raise RuntimeError(
-        "Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SESSION_SECRET, or DATABASE_URL in .env"
-    )
+_required = {
+    "SESSION_SECRET": SESSION_SECRET,
+    "GOOGLE_CLIENT_ID": GOOGLE_CLIENT_ID,
+    "GOOGLE_CLIENT_SECRET": GOOGLE_CLIENT_SECRET,
+    "DATABASE_URL": DATABASE_URL,
+}
+_missing = [name for name, value in _required.items() if not value]
+if _missing:
+    raise RuntimeError(f"Missing required environment variable(s): {', '.join(_missing)}")
 
 app = FastAPI(title="Content Crew")
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
