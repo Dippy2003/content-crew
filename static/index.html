@@ -4,59 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Content Crew</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="/static/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div class="bg-glow"></div>
+  <div class="aurora">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+  <div class="grid-overlay"></div>
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">✦</span>
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+        </svg>
+      </span>
       <span class="brand-name">Content Crew</span>
     </div>
-    <span class="brand-tag">Researcher → Writer → Editor · CrewAI + Groq</span>
+    <span class="brand-tag">Researcher <span class="arrow">→</span> Writer <span class="arrow">→</span> Editor &nbsp;·&nbsp; CrewAI + Groq</span>
   </header>
 
   <main class="container">
-    <section class="hero card">
+    <section class="hero card glow-border">
+      <span class="eyebrow">AI content pipeline</span>
       <h1>Generate an article</h1>
-      <p class="muted">Three agents research, draft, and polish a piece on any topic.</p>
+      <p class="muted">Three agents research, draft, and polish a piece on any topic — end to end.</p>
 
       <form id="generate-form" class="generate-row">
-        <input
-          id="topic-input"
-          type="text"
-          placeholder="e.g. the future of electric vehicles"
-          autocomplete="off"
-          required
-        />
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            id="topic-input"
+            type="text"
+            placeholder="e.g. the future of electric vehicles"
+            autocomplete="off"
+            required
+          />
+        </div>
         <button id="generate-btn" type="submit">
           <span class="btn-label">Generate</span>
+          <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
         </button>
       </form>
 
       <div id="pipeline-status" class="pipeline-status hidden">
-        <div class="step" data-step="research"><span class="dot"></span>Researching</div>
-        <div class="step" data-step="write"><span class="dot"></span>Writing</div>
-        <div class="step" data-step="edit"><span class="dot"></span>Editing</div>
+        <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+        <div class="steps">
+          <div class="step" data-step="research"><span class="dot"></span>Researching</div>
+          <div class="step" data-step="write"><span class="dot"></span>Writing</div>
+          <div class="step" data-step="edit"><span class="dot"></span>Editing</div>
+        </div>
       </div>
 
       <div id="error-box" class="error-box hidden"></div>
     </section>
 
-    <section id="result-card" class="card result-card hidden">
+    <section id="result-card" class="card glow-border result-card hidden">
       <div class="card-header">
-        <h2>Latest article</h2>
-        <button id="download-current" class="ghost-btn">Download</button>
+        <h2><span class="title-dot success"></span>Latest article</h2>
+        <button id="download-current" class="ghost-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download
+        </button>
       </div>
       <article id="result-content" class="markdown-body"></article>
     </section>
 
-    <section class="card">
+    <section class="card glow-border">
       <div class="card-header">
-        <h2>Past articles</h2>
-        <button id="refresh-list" class="ghost-btn">Refresh</button>
+        <h2><span class="title-dot"></span>Past articles</h2>
+        <button id="refresh-list" class="ghost-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Refresh
+        </button>
       </div>
       <div id="article-list" class="article-list"></div>
     </section>

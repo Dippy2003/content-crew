@@ -3,6 +3,7 @@ const topicInput = document.getElementById("topic-input");
 const generateBtn = document.getElementById("generate-btn");
 const btnLabel = generateBtn.querySelector(".btn-label");
 const statusBox = document.getElementById("pipeline-status");
+const progressFill = document.getElementById("progress-fill");
 const errorBox = document.getElementById("error-box");
 const resultCard = document.getElementById("result-card");
 const resultContent = document.getElementById("result-content");
@@ -27,16 +28,21 @@ function setStep(stepName, state) {
 function startFakeProgress() {
   statusBox.classList.remove("hidden");
   ["research", "write", "edit"].forEach((s) => setStep(s, null));
+  progressFill.style.width = "4%";
   setStep("research", "active");
+
+  stepTimers.push(setTimeout(() => { progressFill.style.width = "30%"; }, 200));
 
   stepTimers.push(setTimeout(() => {
     setStep("research", "done");
     setStep("write", "active");
+    progressFill.style.width = "62%";
   }, 12000));
 
   stepTimers.push(setTimeout(() => {
     setStep("write", "done");
     setStep("edit", "active");
+    progressFill.style.width = "88%";
   }, 28000));
 }
 
@@ -44,9 +50,10 @@ function finishProgress(success) {
   stepTimers.forEach(clearTimeout);
   stepTimers = [];
   if (success) {
+    progressFill.style.width = "100%";
     ["research", "write", "edit"].forEach((s) => setStep(s, "done"));
   }
-  setTimeout(() => statusBox.classList.add("hidden"), 600);
+  setTimeout(() => statusBox.classList.add("hidden"), 700);
 }
 
 function setLoading(isLoading) {
@@ -81,7 +88,10 @@ async function loadArticles() {
     const row = document.createElement("div");
     row.className = "article-row";
     const title = filename.replace(/_\d{8}-\d{6}\.md$/, "").replace(/-/g, " ");
-    row.innerHTML = `<span class="title">${title}</span><span class="date">${filename}</span>`;
+    row.innerHTML = `
+      <span class="title">📄 ${title}</span>
+      <span class="date">${filename}</span>
+    `;
     row.addEventListener("click", () => openArticle(filename));
     articleList.appendChild(row);
   }
