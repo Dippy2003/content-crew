@@ -59,7 +59,7 @@ def web_search(query: str) -> str:
 # ---- LLM config ----
 # Using Groq's free tier (Llama 3.3 70B) instead of a paid Anthropic key.
 llm = LLM(
-    model="groq/llama-3.3-70b-versatile",
+    model="groq/llama-3.1-8b-instant",
     api_key=os.environ.get("GROQ_API_KEY"),
 )
 
