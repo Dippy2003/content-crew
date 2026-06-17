@@ -54,3 +54,6 @@ dmypy.json
 
 # Logs
 *.log
+
+# Generated articles
+outputs/
