@@ -18,6 +18,34 @@ const modalTitle = document.getElementById("modal-title");
 const modalContent = document.getElementById("modal-content");
 const modalClose = document.getElementById("modal-close");
 
+const signinCard = document.getElementById("signin-card");
+const appCard = document.getElementById("app-card");
+const articlesCard = document.getElementById("articles-card");
+const userBox = document.getElementById("user-box");
+const userAvatar = document.getElementById("user-avatar");
+const userName = document.getElementById("user-name");
+
+async function checkAuth() {
+  const res = await fetch("/api/me");
+  const user = await res.json();
+
+  if (!user) {
+    signinCard.classList.remove("hidden");
+    appCard.classList.add("hidden");
+    articlesCard.classList.add("hidden");
+    userBox.classList.add("hidden");
+    return false;
+  }
+
+  signinCard.classList.add("hidden");
+  appCard.classList.remove("hidden");
+  articlesCard.classList.remove("hidden");
+  userBox.classList.remove("hidden");
+  userName.textContent = user.name;
+  if (user.picture) userAvatar.src = user.picture;
+  return true;
+}
+
 let currentArticle = null;
 let stepTimers = [];
 let logInterval = null;
@@ -212,6 +240,11 @@ form.addEventListener("submit", async (e) => {
       body: JSON.stringify({ topic }),
     });
 
+    if (res.status === 401) {
+      await checkAuth();
+      throw new Error("Your session expired. Please sign in again.");
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "Generation failed.");
@@ -235,4 +268,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-loadArticles();
+(async () => {
+  const signedIn = await checkAuth();
+  if (signedIn) await loadArticles();
+})();

@@ -157,9 +157,11 @@ def run_with_retries(topic: str, max_attempts: int = 3, base_delay: float = 5.0)
     return None
 
 
-def save_article(topic: str, content: str) -> str:
-    """Save the final article to /outputs/<topic>_<timestamp>.md and return the path."""
+def save_article(topic: str, content: str, subdir: str | None = None) -> str:
+    """Save the final article to /outputs[/subdir]/<topic>_<timestamp>.md and return the path."""
     outputs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
+    if subdir:
+        outputs_dir = os.path.join(outputs_dir, subdir)
     os.makedirs(outputs_dir, exist_ok=True)
 
     slug = re.sub(r"[^a-z0-9]+", "-", topic.lower()).strip("-") or "untitled"

@@ -134,6 +134,51 @@ html, body {
   color: var(--accent);
 }
 
+.user-box {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+}
+
+.signin-card {
+  text-align: center;
+  padding: 50px 40px;
+}
+
+.signin-card h1 {
+  font-size: 26px;
+}
+
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  background: #fff;
+  color: #1f1f1f;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.google-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+}
+
 /* ---------- Layout ---------- */
 .container {
   position: relative;
@@ -332,11 +377,8 @@ button {
   border-top: 1px solid var(--border);
 }
 
-.pipeline-status.hidden,
-.error-box.hidden,
-.result-card.hidden,
-.modal-backdrop.hidden {
-  display: none;
+.hidden {
+  display: none !important;
 }
 
 .ai-orb-row {

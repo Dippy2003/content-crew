@@ -31,10 +31,25 @@
       <span class="brand-name">Content Crew</span>
     </div>
     <span class="brand-tag">Researcher <span class="arrow">→</span> Writer <span class="arrow">→</span> Editor &nbsp;·&nbsp; CrewAI + Groq</span>
+    <div id="user-box" class="user-box hidden">
+      <img id="user-avatar" class="user-avatar" alt="" />
+      <span id="user-name"></span>
+      <a href="/auth/logout" class="ghost-btn">Sign out</a>
+    </div>
   </header>
 
   <main class="container">
-    <section class="hero card glow-border">
+    <section id="signin-card" class="card glow-border signin-card hidden">
+      <span class="eyebrow">Sign in required</span>
+      <h1>Sign in to generate articles</h1>
+      <p class="muted">Google sign-in is required so your generated articles are saved privately to your account.</p>
+      <a href="/auth/login" class="google-btn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.4 0-13.8 4.1-17.1 10.1z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-4.9l-6.5-5.4C29.4 35.6 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.9 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.1-3.3 5.6-6.1 7.2l6.5 5.4C39.5 37.3 44 31.5 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+        Sign in with Google
+      </a>
+    </section>
+
+    <section id="app-card" class="hero card glow-border hidden">
       <span class="eyebrow">AI content pipeline</span>
       <h1>Generate an article</h1>
       <p class="muted">Three agents research, draft, and polish a piece on any topic — end to end.</p>
@@ -101,7 +116,7 @@
       <article id="result-content" class="markdown-body"></article>
     </section>
 
-    <section class="card glow-border">
+    <section id="articles-card" class="card glow-border hidden">
       <div class="card-header">
         <h2><span class="title-dot"></span>Past articles</h2>
         <button id="refresh-list" class="ghost-btn">
