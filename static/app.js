@@ -4,6 +4,8 @@ const generateBtn = document.getElementById("generate-btn");
 const btnLabel = generateBtn.querySelector(".btn-label");
 const statusBox = document.getElementById("pipeline-status");
 const progressFill = document.getElementById("progress-fill");
+const orbHeadline = document.getElementById("orb-headline");
+const agentLog = document.getElementById("agent-log");
 const errorBox = document.getElementById("error-box");
 const resultCard = document.getElementById("result-card");
 const resultContent = document.getElementById("result-content");
@@ -18,6 +20,7 @@ const modalClose = document.getElementById("modal-close");
 
 let currentArticle = null;
 let stepTimers = [];
+let logInterval = null;
 
 function setStep(stepName, state) {
   const el = statusBox.querySelector(`[data-step="${stepName}"]`);
@@ -25,23 +28,88 @@ function setStep(stepName, state) {
   if (state) el.classList.add(state);
 }
 
+const LOG_LINES = {
+  research: [
+    ["WEB", "querying search index for source material..."],
+    ["WEB", "ranking results by relevance and recency"],
+    ["AGENT", "Senior Research Analyst is cross-checking facts"],
+    ["AGENT", "flagging unverified claims for review"],
+    ["WEB", "extracting key data points from top sources"],
+    ["AGENT", "compiling structured findings + citations"],
+  ],
+  write: [
+    ["AGENT", "Content Writer is reading the research brief"],
+    ["LLM", "drafting opening hook and section outline"],
+    ["LLM", "expanding sections with supporting detail"],
+    ["AGENT", "weaving in source references inline"],
+    ["LLM", "shaping a conversational, jargon-free tone"],
+  ],
+  edit: [
+    ["AGENT", "Senior Editor is reviewing the draft"],
+    ["LLM", "tightening sentences, trimming filler"],
+    ["AGENT", "verifying claims against the original research"],
+    ["LLM", "polishing tone and structure for readability"],
+    ["AGENT", "finalizing publication-ready copy"],
+  ],
+};
+
+const HEADLINES = {
+  research: "Researching the web",
+  write: "Drafting the article",
+  edit: "Polishing the final copy",
+};
+
+function setHeadline(text) {
+  orbHeadline.innerHTML = `${text}<span class="ellipsis"><span>.</span><span>.</span><span>.</span></span>`;
+}
+
+function pushLogLine(tag, text) {
+  const line = document.createElement("div");
+  line.className = "log-line";
+  const ts = new Date().toLocaleTimeString([], { hour12: false });
+  line.innerHTML = `<span class="ts">${ts}</span><span class="tag">[${tag}]</span><span>${text}</span>`;
+  agentLog.appendChild(line);
+  while (agentLog.children.length > 6) {
+    agentLog.removeChild(agentLog.firstChild);
+  }
+}
+
+function runLogFeedFor(phase) {
+  if (logInterval) clearInterval(logInterval);
+  const lines = LOG_LINES[phase];
+  let i = 0;
+  pushLogLine(...lines[0]);
+  i = 1;
+  logInterval = setInterval(() => {
+    pushLogLine(...lines[i % lines.length]);
+    i++;
+  }, 1700);
+}
+
 function startFakeProgress() {
   statusBox.classList.remove("hidden");
+  agentLog.innerHTML = "";
   ["research", "write", "edit"].forEach((s) => setStep(s, null));
   progressFill.style.width = "4%";
   setStep("research", "active");
+  setHeadline(HEADLINES.research);
+  runLogFeedFor("research");
 
   stepTimers.push(setTimeout(() => { progressFill.style.width = "30%"; }, 200));
 
   stepTimers.push(setTimeout(() => {
     setStep("research", "done");
     setStep("write", "active");
+    setHeadline(HEADLINES.write);
+    runLogFeedFor("write");
     progressFill.style.width = "62%";
   }, 12000));
 
   stepTimers.push(setTimeout(() => {
     setStep("write", "done");
     setStep("edit", "active");
+    setHeadline(HEADLINES.edit);
+    runLogFeedFor("edit");
     progressFill.style.width = "88%";
   }, 28000));
 }
@@ -49,11 +117,14 @@ function startFakeProgress() {
 function finishProgress(success) {
   stepTimers.forEach(clearTimeout);
   stepTimers = [];
+  if (logInterval) clearInterval(logInterval);
   if (success) {
     progressFill.style.width = "100%";
+    setHeadline("Done");
     ["research", "write", "edit"].forEach((s) => setStep(s, "done"));
+    pushLogLine("DONE", "article finalized and saved.");
   }
-  setTimeout(() => statusBox.classList.add("hidden"), 700);
+  setTimeout(() => statusBox.classList.add("hidden"), 900);
 }
 
 function setLoading(isLoading) {
@@ -149,7 +220,10 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     currentArticle = data;
     resultContent.innerHTML = marked.parse(data.content);
+    resultContent.classList.remove("reveal");
     resultCard.classList.remove("hidden");
+    void resultContent.offsetWidth;
+    resultContent.classList.add("reveal");
     finishProgress(true);
     await loadArticles();
   } catch (err) {
