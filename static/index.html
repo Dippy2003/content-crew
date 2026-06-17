@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Crew</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-name">Content Crew</span>
+    </div>
+    <span class="brand-tag">Researcher → Writer → Editor · CrewAI + Groq</span>
+  </header>
+
+  <main class="container">
+    <section class="hero card">
+      <h1>Generate an article</h1>
+      <p class="muted">Three agents research, draft, and polish a piece on any topic.</p>
+
+      <form id="generate-form" class="generate-row">
+        <input
+          id="topic-input"
+          type="text"
+          placeholder="e.g. the future of electric vehicles"
+          autocomplete="off"
+          required
+        />
+        <button id="generate-btn" type="submit">
+          <span class="btn-label">Generate</span>
+        </button>
+      </form>
+
+      <div id="pipeline-status" class="pipeline-status hidden">
+        <div class="step" data-step="research"><span class="dot"></span>Researching</div>
+        <div class="step" data-step="write"><span class="dot"></span>Writing</div>
+        <div class="step" data-step="edit"><span class="dot"></span>Editing</div>
+      </div>
+
+      <div id="error-box" class="error-box hidden"></div>
+    </section>
+
+    <section id="result-card" class="card result-card hidden">
+      <div class="card-header">
+        <h2>Latest article</h2>
+        <button id="download-current" class="ghost-btn">Download</button>
+      </div>
+      <article id="result-content" class="markdown-body"></article>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Past articles</h2>
+        <button id="refresh-list" class="ghost-btn">Refresh</button>
+      </div>
+      <div id="article-list" class="article-list"></div>
+    </section>
+  </main>
+
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button id="modal-close" class="ghost-btn">Close</button>
+      </div>
+      <article id="modal-content" class="markdown-body"></article>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
