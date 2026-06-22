@@ -50,28 +50,64 @@ def _strip_markdown(content: str) -> str:
     return text
 
 
+def _wrap_line(text: str, font, fontsize: float, max_width: float) -> list[str]:
+    """Greedy word-wrap a single line to fit max_width at the given font size."""
+    words = text.split()
+    if not words:
+        return [""]
+    lines, current = [], words[0]
+    for word in words[1:]:
+        candidate = f"{current} {word}"
+        if font.text_length(candidate, fontsize) <= max_width:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    lines.append(current)
+    return lines
+
+
 def to_pdf(content: str, title: str) -> bytes:
-    """Render the article to a simple PDF and return the bytes."""
+    """Render the article to a simple PDF and return the bytes.
+
+    Draws text line by line with explicit positioning rather than relying on
+    insert_textbox's overflow/reflow behaviour, which could silently leave a
+    page blank in some environments.
+    """
     try:
         import fitz  # PyMuPDF
     except ImportError as e:
         raise ExportUnavailable("PDF export requires PyMuPDF (fitz).") from e
 
-    doc = fitz.open()
+    fontname, fontsize, leading = "helv", 11, 15
+    margin = 54
+    font = fitz.Font(fontname)
+    # The base-14 fonts only cover Latin-1; map anything else to a close ASCII
+    # equivalent so smart quotes / dashes / bullets from the LLM still render.
     body = _strip_markdown(content)
-    # PyMuPDF lays text into a rectangle and tells us what overflowed; loop pages
-    # until the whole article is placed.
-    remaining = f"{title}\n\n{body}" if title else body
-    while remaining:
-        page = doc.new_page()
-        rect = fitz.Rect(54, 54, page.rect.width - 54, page.rect.height - 54)
-        leftover = page.insert_textbox(rect, remaining, fontsize=11, fontname="helv")
-        # insert_textbox returns the height used (>=0) or, when text overflows,
-        # a negative number; we re-flow by measuring how much fit.
-        placed = remaining if leftover >= 0 else page.get_textbox(rect)
-        if not placed or placed == remaining:
-            break
-        remaining = remaining[len(placed):].lstrip("\n")
+    text = f"{title}\n\n{body}" if title else body
+    text = (
+        text.replace("‘", "'").replace("’", "'")
+        .replace("“", '"').replace("”", '"')
+        .replace("–", "-").replace("—", "-")
+        .replace("•", "-").replace("…", "...")
+    )
+    text = text.encode("latin-1", "replace").decode("latin-1")
+
+    doc = fitz.open()
+    page = doc.new_page()
+    width, height = page.rect.width, page.rect.height
+    max_width = width - 2 * margin
+    y = margin
+
+    for raw_line in text.split("\n"):
+        for line in _wrap_line(raw_line, font, fontsize, max_width):
+            if y + leading > height - margin:
+                page = doc.new_page()
+                y = margin
+            page.insert_text((margin, y), line, fontsize=fontsize, fontname=fontname)
+            y += leading
+
     out = doc.tobytes()
     doc.close()
     return out
