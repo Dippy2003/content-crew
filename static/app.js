@@ -12,6 +12,13 @@ const resultContent = document.getElementById("result-content");
 const readingBadge = document.getElementById("reading-badge");
 const copyCurrentBtn = document.getElementById("copy-current");
 const downloadCurrentBtn = document.getElementById("download-current");
+const exportPdfBtn = document.getElementById("export-pdf");
+const exportDocxBtn = document.getElementById("export-docx");
+const shareCurrentBtn = document.getElementById("share-current");
+const shareRow = document.getElementById("share-row");
+const shareLinkInput = document.getElementById("share-link");
+const copyShareLinkBtn = document.getElementById("copy-share-link");
+const unshareCurrentBtn = document.getElementById("unshare-current");
 const articleList = document.getElementById("article-list");
 const refreshBtn = document.getElementById("refresh-list");
 
@@ -204,6 +211,100 @@ copyCurrentBtn.addEventListener("click", () => {
   if (currentArticle) copyText(currentArticle.content, copyCurrentBtn);
 });
 
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function exportArticle(format, btn) {
+  if (!currentArticle) return;
+  const label = btn.querySelector(".btn-text");
+  const original = label ? label.textContent : "";
+  if (label) label.textContent = "…";
+  btn.disabled = true;
+  try {
+    const res = await fetch(
+      `/api/articles/${encodeURIComponent(currentArticle.filename)}/export?format=${format}`
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Export failed.");
+    }
+    const blob = await res.blob();
+    const base = currentArticle.filename.replace(/\.md$/, "");
+    triggerDownload(blob, `${base}.${format}`);
+  } catch (err) {
+    showError(err.message || "Export failed.");
+  } finally {
+    if (label) label.textContent = original;
+    btn.disabled = false;
+  }
+}
+
+exportPdfBtn.addEventListener("click", () => exportArticle("pdf", exportPdfBtn));
+exportDocxBtn.addEventListener("click", () => exportArticle("docx", exportDocxBtn));
+
+function showShareLink(url) {
+  shareLinkInput.value = url;
+  shareRow.classList.remove("hidden");
+  shareCurrentBtn.classList.add("active");
+}
+
+function hideShareLink() {
+  shareRow.classList.add("hidden");
+  shareCurrentBtn.classList.remove("active");
+}
+
+shareCurrentBtn.addEventListener("click", async () => {
+  if (!currentArticle) return;
+  // Already showing a link? Treat the button as a toggle to hide the row.
+  if (!shareRow.classList.contains("hidden")) {
+    hideShareLink();
+    return;
+  }
+  shareCurrentBtn.disabled = true;
+  try {
+    const res = await fetch(
+      `/api/articles/${encodeURIComponent(currentArticle.filename)}/share`,
+      { method: "POST" }
+    );
+    if (!res.ok) throw new Error("Could not create a share link.");
+    const data = await res.json();
+    showShareLink(data.share_url);
+    await loadArticles();
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    shareCurrentBtn.disabled = false;
+  }
+});
+
+copyShareLinkBtn.addEventListener("click", () => {
+  copyText(shareLinkInput.value, copyShareLinkBtn);
+});
+
+unshareCurrentBtn.addEventListener("click", async () => {
+  if (!currentArticle) return;
+  unshareCurrentBtn.disabled = true;
+  try {
+    const res = await fetch(
+      `/api/articles/${encodeURIComponent(currentArticle.filename)}/share`,
+      { method: "DELETE" }
+    );
+    if (!res.ok) throw new Error("Could not stop sharing.");
+    hideShareLink();
+    await loadArticles();
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    unshareCurrentBtn.disabled = false;
+  }
+});
+
 async function loadArticles() {
   const res = await fetch("/api/articles");
   const articles = await res.json();
@@ -285,6 +386,7 @@ form.addEventListener("submit", async (e) => {
     currentArticle = data;
     resultContent.innerHTML = marked.parse(data.content);
     showReadingBadge(data);
+    hideShareLink();
     resultContent.classList.remove("reveal");
     resultCard.classList.remove("hidden");
     void resultContent.offsetWidth;

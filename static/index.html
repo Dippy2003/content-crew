@@ -120,7 +120,26 @@
             </svg>
             <span class="btn-text">Markdown</span>
           </button>
+          <button id="export-pdf" class="ghost-btn" title="Download as PDF">
+            <span class="btn-text">PDF</span>
+          </button>
+          <button id="export-docx" class="ghost-btn" title="Download as Word">
+            <span class="btn-text">Word</span>
+          </button>
+          <button id="share-current" class="ghost-btn" title="Create a public link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            <span class="btn-text">Share</span>
+          </button>
         </div>
+      </div>
+      <div id="share-row" class="share-row hidden">
+        <input id="share-link" class="share-link" type="text" readonly />
+        <button id="copy-share-link" class="ghost-btn"><span class="btn-text">Copy link</span></button>
+        <button id="unshare-current" class="ghost-btn danger-btn">Stop sharing</button>
       </div>
       <article id="result-content" class="markdown-body"></article>
     </section>
