@@ -756,6 +756,34 @@ button {
   font-family: var(--mono);
 }
 
+/* ---------- Article actions + reading badge ---------- */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reading-badge {
+  margin-left: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--mono);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.ghost-btn.copied {
+  border-color: var(--success);
+  color: var(--success);
+  background: rgba(52, 211, 153, 0.1);
+}
+
 /* ---------- Misc ---------- */
 .spinner {
   width: 15px;

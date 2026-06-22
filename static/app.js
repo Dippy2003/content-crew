@@ -9,6 +9,8 @@ const agentLog = document.getElementById("agent-log");
 const errorBox = document.getElementById("error-box");
 const resultCard = document.getElementById("result-card");
 const resultContent = document.getElementById("result-content");
+const readingBadge = document.getElementById("reading-badge");
+const copyCurrentBtn = document.getElementById("copy-current");
 const downloadCurrentBtn = document.getElementById("download-current");
 const articleList = document.getElementById("article-list");
 const refreshBtn = document.getElementById("refresh-list");
@@ -173,6 +175,35 @@ function hideError() {
   errorBox.classList.add("hidden");
 }
 
+function showReadingBadge(article) {
+  if (article && article.reading_time_minutes) {
+    readingBadge.textContent = `${article.reading_time_minutes} min read · ${article.words} words`;
+    readingBadge.classList.remove("hidden");
+  } else {
+    readingBadge.classList.add("hidden");
+  }
+}
+
+async function copyText(text, btn) {
+  const label = btn.querySelector(".btn-text");
+  const original = label ? label.textContent : "";
+  try {
+    await navigator.clipboard.writeText(text);
+    if (label) label.textContent = "Copied!";
+  } catch {
+    if (label) label.textContent = "Copy failed";
+  }
+  btn.classList.add("copied");
+  setTimeout(() => {
+    if (label) label.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+copyCurrentBtn.addEventListener("click", () => {
+  if (currentArticle) copyText(currentArticle.content, copyCurrentBtn);
+});
+
 async function loadArticles() {
   const res = await fetch("/api/articles");
   const articles = await res.json();
@@ -253,6 +284,7 @@ form.addEventListener("submit", async (e) => {
     const data = await res.json();
     currentArticle = data;
     resultContent.innerHTML = marked.parse(data.content);
+    showReadingBadge(data);
     resultContent.classList.remove("reveal");
     resultCard.classList.remove("hidden");
     void resultContent.offsetWidth;

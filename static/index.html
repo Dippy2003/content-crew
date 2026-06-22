@@ -103,15 +103,24 @@
 
     <section id="result-card" class="card glow-border result-card hidden">
       <div class="card-header">
-        <h2><span class="title-dot success"></span>Latest article</h2>
-        <button id="download-current" class="ghost-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Download
-        </button>
+        <h2><span class="title-dot success"></span>Latest article<span id="reading-badge" class="reading-badge hidden"></span></h2>
+        <div class="action-bar">
+          <button id="copy-current" class="ghost-btn" title="Copy article text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span class="btn-text">Copy</span>
+          </button>
+          <button id="download-current" class="ghost-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span class="btn-text">Markdown</span>
+          </button>
+        </div>
       </div>
       <article id="result-content" class="markdown-body"></article>
     </section>
