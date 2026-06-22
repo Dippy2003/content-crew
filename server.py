@@ -179,4 +179,44 @@ def export_article(filename: str, format: str = "pdf", user: dict = Depends(requ
     )
 
 
+def _share_url(request: Request, token: str) -> str:
+    base = str(request.base_url).rstrip("/")
+    # base_url is http:// behind a TLS-terminating proxy; match the public scheme.
+    if request.headers.get("x-forwarded-proto") == "https":
+        base = base.replace("http://", "https://", 1)
+    return f"{base}/share/{token}"
+
+
+@app.post("/api/articles/{filename}/share")
+def share_article(filename: str, request: Request, user: dict = Depends(require_user)):
+    """Enable a public read-only link for the article and return its URL."""
+    token = db.enable_sharing(user["email"], filename)
+    if token is None:
+        raise HTTPException(status_code=404, detail="Article not found.")
+    return {"shared": True, "share_url": _share_url(request, token)}
+
+
+@app.delete("/api/articles/{filename}/share")
+def unshare_article(filename: str, user: dict = Depends(require_user)):
+    """Revoke the public link for the article."""
+    if not db.disable_sharing(user["email"], filename):
+        raise HTTPException(status_code=404, detail="Article not found.")
+    return {"shared": False}
+
+
+@app.get("/share/{token}")
+def shared_page(token: str):
+    """Public, auth-free page that renders a shared article."""
+    return FileResponse(os.path.join(STATIC_DIR, "share.html"))
+
+
+@app.get("/api/shared/{token}")
+def shared_article(token: str):
+    """Public JSON for a shared article; powers the /share/{token} page."""
+    article = db.get_shared_article(token)
+    if article is None:
+        raise HTTPException(status_code=404, detail="This shared article was not found or is no longer public.")
+    return {**article, **exports.reading_stats(article["content"])}
+
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
