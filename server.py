@@ -20,12 +20,13 @@ load_dotenv()
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
 import db
+import exports
 from content_pipeline import run_with_retries
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -132,7 +133,7 @@ def generate(req: GenerateRequest, user: dict = Depends(require_user)):
     content = str(result)
     filename = make_filename(topic)
     db.save_article(user["email"], filename, topic, content)
-    return {"filename": filename, "content": content}
+    return {"filename": filename, "content": content, **exports.reading_stats(content)}
 
 
 @app.get("/api/articles")
@@ -145,7 +146,37 @@ def get_article(filename: str, user: dict = Depends(require_user)):
     article = db.get_article(user["email"], filename)
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found.")
-    return article
+    return {**article, **exports.reading_stats(article["content"])}
+
+
+@app.get("/api/articles/{filename}/export")
+def export_article(filename: str, format: str = "pdf", user: dict = Depends(require_user)):
+    """Download an article as a PDF or Word document."""
+    article = db.get_article(user["email"], filename)
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found.")
+
+    title = filename.rsplit("_", 1)[0].replace("-", " ").strip().title()
+    download_base = filename[:-3] if filename.endswith(".md") else filename
+
+    if format == "pdf":
+        media_type, ext, render = "application/pdf", "pdf", exports.to_pdf
+    elif format == "docx":
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ext, render = "docx", exports.to_docx
+    else:
+        raise HTTPException(status_code=400, detail="format must be 'pdf' or 'docx'.")
+
+    try:
+        data = render(article["content"], title)
+    except exports.ExportUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{download_base}.{ext}"'},
+    )
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
