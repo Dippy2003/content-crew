@@ -58,9 +58,11 @@ def web_search(query: str) -> str:
 
 # ---- LLM config ----
 # Using Groq's free tier (Llama 3.3 70B) instead of a paid Anthropic key.
+# Strip the key: a stray trailing newline (easy to introduce when pasting into
+# a hosting platform's secret field) becomes an illegal Authorization header.
 llm = LLM(
     model="groq/llama-3.1-8b-instant",
-    api_key=os.environ.get("GROQ_API_KEY"),
+    api_key=(os.environ.get("GROQ_API_KEY") or "").strip(),
 )
 
 
