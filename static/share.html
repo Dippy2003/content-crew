@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared article · Content Crew</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="aurora">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+  <div class="grid-overlay"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-name">Content Crew</span>
+    </div>
+    <span class="brand-tag">Shared article</span>
+    <div class="user-box">
+      <a href="/" class="ghost-btn">Create your own</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="share-card" class="card glow-border result-card">
+      <div class="card-header">
+        <h2><span class="title-dot success"></span><span id="share-title">Shared article</span></h2>
+        <span id="reading-badge" class="reading-badge hidden"></span>
+      </div>
+      <article id="share-content" class="markdown-body"></article>
+    </section>
+
+    <section id="share-error" class="card glow-border signin-card hidden">
+      <span class="eyebrow">Not available</span>
+      <h1>This article isn't available</h1>
+      <p class="muted">The link may have been revoked, or it never existed. Ask whoever shared it for a fresh link.</p>
+      <a href="/" class="google-btn">Go to Content Crew</a>
+    </section>
+  </main>
+
+  <script>
+    (async () => {
+      const token = location.pathname.split("/share/")[1] || "";
+      const card = document.getElementById("share-card");
+      const errorCard = document.getElementById("share-error");
+      const badge = document.getElementById("reading-badge");
+
+      const res = await fetch(`/api/shared/${encodeURIComponent(token)}`);
+      if (!res.ok) {
+        card.classList.add("hidden");
+        errorCard.classList.remove("hidden");
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("share-title").textContent = data.filename;
+      document.getElementById("share-content").innerHTML = marked.parse(data.content);
+      if (data.reading_time_minutes) {
+        badge.textContent = `${data.reading_time_minutes} min read · ${data.words} words`;
+        badge.classList.remove("hidden");
+      }
+      document.title = `${data.filename} · Content Crew`;
+    })();
+  </script>
+</body>
+</html>

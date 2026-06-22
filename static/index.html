@@ -103,15 +103,43 @@
 
     <section id="result-card" class="card glow-border result-card hidden">
       <div class="card-header">
-        <h2><span class="title-dot success"></span>Latest article</h2>
-        <button id="download-current" class="ghost-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Download
-        </button>
+        <h2><span class="title-dot success"></span>Latest article<span id="reading-badge" class="reading-badge hidden"></span></h2>
+        <div class="action-bar">
+          <button id="copy-current" class="ghost-btn" title="Copy article text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span class="btn-text">Copy</span>
+          </button>
+          <button id="download-current" class="ghost-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span class="btn-text">Markdown</span>
+          </button>
+          <button id="export-pdf" class="ghost-btn" title="Download as PDF">
+            <span class="btn-text">PDF</span>
+          </button>
+          <button id="export-docx" class="ghost-btn" title="Download as Word">
+            <span class="btn-text">Word</span>
+          </button>
+          <button id="share-current" class="ghost-btn" title="Create a public link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            <span class="btn-text">Share</span>
+          </button>
+        </div>
+      </div>
+      <div id="share-row" class="share-row hidden">
+        <input id="share-link" class="share-link" type="text" readonly />
+        <button id="copy-share-link" class="ghost-btn"><span class="btn-text">Copy link</span></button>
+        <button id="unshare-current" class="ghost-btn danger-btn">Stop sharing</button>
       </div>
       <article id="result-content" class="markdown-body"></article>
     </section>
