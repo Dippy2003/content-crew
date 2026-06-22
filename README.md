@@ -19,6 +19,8 @@ A multi-agent content pipeline — **Researcher → Writer → Editor** — buil
 - **Persistent storage**: articles are saved to a Postgres database (Neon), not local disk, so they survive restarts/redeploys.
 - **Retry with backoff**: a failed LLM call is retried automatically before giving up.
 - **Web UI**: a single-page app with live progress indicators while the crew works, plus a history of past articles.
+- **Export & share**: copy an article to the clipboard, download it as Markdown, PDF, or Word, or publish a read-only public link anyone can open (no sign-in required) — revocable at any time.
+- **Reading stats**: each article shows an estimated reading time and word count.
 - **CLI mode**: run the pipeline from the terminal, including batch mode over a list of topics.
 
 ## How it works
@@ -74,8 +76,9 @@ A multi-agent content pipeline — **Researcher → Writer → Editor** — buil
 ```
 content_pipeline.py   # CrewAI agents/tasks/crew + CLI entry point
 server.py              # FastAPI app: Google OAuth, routes, API
-db.py                  # Postgres-backed article storage
-static/                # Frontend (HTML/CSS/JS)
+db.py                  # Postgres-backed article storage (incl. share tokens)
+exports.py             # Reading stats + Markdown -> PDF/DOCX rendering
+static/                # Frontend (HTML/CSS/JS); share.html is the public share page
 test_search.py          # Standalone test for the web search tool
 topics.txt              # Sample topics for CLI batch mode
 Dockerfile               # Container build for deployment
