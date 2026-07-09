@@ -322,9 +322,38 @@ async function loadArticles() {
     row.innerHTML = `
       <span class="title">📄 ${title}</span>
       <span class="date">${filename}</span>
+      <button class="ghost-btn danger-btn delete-article" title="Delete article" aria-label="Delete article">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
     `;
     row.addEventListener("click", () => openArticle(filename));
+    row.querySelector(".delete-article").addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteArticle(filename);
+    });
     articleList.appendChild(row);
+  }
+}
+
+async function deleteArticle(filename) {
+  if (!confirm("Delete this article permanently? This cannot be undone.")) return;
+  try {
+    const res = await fetch(`/api/articles/${encodeURIComponent(filename)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Could not delete the article.");
+    // If the deleted article is the one on screen, clear the result card.
+    if (currentArticle && currentArticle.filename === filename) {
+      currentArticle = null;
+      hideShareLink();
+      resultCard.classList.add("hidden");
+    }
+    await loadArticles();
+  } catch (err) {
+    showError(err.message || "Could not delete the article.");
   }
 }
 
