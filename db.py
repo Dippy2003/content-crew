@@ -94,6 +94,21 @@ def get_article(user_email: str, filename: str) -> dict | None:
             return dict(row) if row else None
 
 
+def delete_article(user_email: str, filename: str) -> bool:
+    """Delete an article owned by the user. Returns True if a row was removed."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM articles
+                WHERE user_email = %s AND filename = %s
+                RETURNING id;
+                """,
+                (user_email, filename),
+            )
+            return cur.fetchone() is not None
+
+
 def enable_sharing(user_email: str, filename: str) -> str | None:
     """Give the article a public share token (reusing one if already set) and return it."""
     token = secrets.token_urlsafe(16)
