@@ -29,6 +29,7 @@ Content Crew is a multi-agent content pipeline (Researcher, Writer, Editor) buil
 | Open a past article | The full saved piece, with reading time and word count |
 | Click Copy / Markdown / PDF / Word | The article on your clipboard or downloaded as a file |
 | Click Share | A read-only public link anyone can open without signing in, revocable at any time |
+| Click the trash icon on a past article | The article is permanently removed from your workspace |
 | Run the CLI with `--batch topics.txt` | One generated article per topic in the file |
 
 Every failed LLM call is retried automatically with exponential backoff before the pipeline gives up. Articles live in a Postgres database (Neon), so they survive restarts and redeploys.
