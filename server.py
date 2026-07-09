@@ -149,6 +149,14 @@ def get_article(filename: str, user: dict = Depends(require_user)):
     return {**article, **exports.reading_stats(article["content"])}
 
 
+@app.delete("/api/articles/{filename}")
+def delete_article(filename: str, user: dict = Depends(require_user)):
+    """Permanently delete one of the signed-in user's articles."""
+    if not db.delete_article(user["email"], filename):
+        raise HTTPException(status_code=404, detail="Article not found.")
+    return {"deleted": True, "filename": filename}
+
+
 @app.get("/api/articles/{filename}/export")
 def export_article(filename: str, format: str = "pdf", user: dict = Depends(require_user)):
     """Download an article as a PDF or Word document."""
