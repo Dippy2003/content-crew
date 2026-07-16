@@ -18,7 +18,7 @@
 
 Content Crew is a multi-agent content pipeline (Researcher, Writer, Editor) built with [CrewAI](https://www.crewai.com/) and served by [Groq](https://groq.com/). You sign in with Google, type a topic, and receive a researched, drafted, and edited article in a couple of minutes. Every article is saved privately to your account in Postgres.
 
----
+----
 
 ## What It Does
 
